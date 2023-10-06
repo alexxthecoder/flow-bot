@@ -1,38 +1,40 @@
 import logging
-import configparser
+import os
+from decouple import config 
 from database import get_store
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, ConversationHandler, MessageHandler, filters
-     
+from telegram.ext import (
+    ApplicationBuilder, 
+    ContextTypes, 
+    CommandHandler, 
+    ConversationHandler, 
+    MessageHandler, 
+    filters
+)
 
 
+###LOGGER
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
+###Check for running parent venv
+if not os.getenv("VIRTUAL_ENV"):
+    logger.error("Please activate a virtual environment before running the bot.")
+    exit(1)
 
+###Load TG api token, include check.
+token = config('TG_api_token')
+if not token:
+     logger.info("Invalid token")
+     exit(1)
+
+###Constants for PYTB Conversation states
 GET_NAME, GET_DESCRIPTION, GET_PRICE = range(3)
-
 BUY_ITEM_NAME = 1
 
-
-def init_config():
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    if 'Telegram' in config:
-        return config
-    else:
-        logger.error("Telegram API token not found. Please store your Telegram API token in config.ini.")
-        exit(1)
-
-try:
-    config = init_config()
-    token = config['Telegram']['api_token']
-except KeyError as e:
-    logger.error(f"Error retrieving API token from configuration: {e}")
-    exit(1)
 
 
 ###BOT COMMANDS
